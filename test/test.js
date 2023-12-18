@@ -60,6 +60,85 @@ t('allows custom formats by overriding some methods', (t) => {
     t.end();
 });
 
+
+
+t("allows custom formats by overriding some methods", (t) => {
+     const compare = (a, b) => {
+        if (a > b) {
+            return 1
+        }
+        if (a < b) {
+            return -1
+        }
+        return 0
+    }
+
+    const compareTuple = (a, b) => {
+        const len = Math.min(a.length, b.length);
+
+        for (let i = 0; i < len; i++) {
+            const dir = compare(a[i], b[i]);
+            if (dir !== 0) return dir;
+        }
+
+        return compare(a.length, b.length);
+    }
+
+
+    class TupleRBush extends RBush {
+        toBBox(a) {
+            return {
+                minX: a.start,
+                minY: a.start,
+                maxX: a.end,
+                maxY: a.end,
+            };
+        }
+        compareMinX(a, b) {
+            return compareTuple(a.start, b.end);
+        }
+        compareMinY(a, b) {
+            return compareTuple(a.start, b.end);
+        }
+        compare(a, b) {
+            return compareTuple(a, b);
+        }
+    };
+
+    // function bboxArea(a)   { return (a.maxX - a.minX) * (a.maxY - a.minY); }
+    // function bboxMargin(a) { return (a.maxX - a.minX) + (a.maxY - a.minY); }
+
+
+    const tree = new TupleRBush();
+
+    const search = { start: ["e"], end: ["k"] };
+    const tests = [
+        { match: false, label: "left", start: ["a"], end: ["b"] },
+        { match: true, label: "left-bound", start: ["a"], end: ["e"] },
+        { match: true, label: "overlap-left", start: ["c"], end: ["g"] },
+        { match: false, label: "right", start: ["n"], end: ["o"] },
+        { match: true, label: "right-bound", start: ["k"], end: ["o"] },
+        { match: true, label: "overlap-right", start: ["i"], end: ["m"] },
+        { match: true, label: "inside", start: ["f"], end: ["j"] },
+        { match: true, label: "outside", start: ["c"], end: ["m"] },
+    ];
+
+
+
+    for (const test of tests) tree.insert(test)
+
+    const result = tree.search(tree.toBBox(search))
+
+    const labels = new Set(result.map(({label}) => label))
+    for (const test of tests) {
+        t.same(labels.has(test.label), test.match);
+    }
+
+    t.end();
+
+
+});
+
 t('constructor uses 9 max entries by default', (t) => {
     const tree = new RBush().load(someData(9));
     t.equal(tree.toJSON().height, 1);

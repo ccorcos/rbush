@@ -159,6 +159,9 @@ export default class RBush {
 
     compareMinX(a, b) { return a.minX - b.minX; }
     compareMinY(a, b) { return a.minY - b.minY; }
+    compare(a, b) { return a - b; }
+    min(a, b) { return this.compare(a, b) < 0 ? a : b}
+    max(a, b) { return this.compare(a, b) > 0 ? a : b}
 
     toJSON() { return this.data; }
 
@@ -405,6 +408,14 @@ export default class RBush {
             } else calcBBox(path[i], this.toBBox);
         }
     }
+
+    _extend(a, b) {
+        a.minX = this.min(a.minX, b.minX);
+        a.minY = this.min(a.minY, b.minY);
+        a.maxX = this.max(a.maxX, b.maxX);
+        a.maxY = this.max(a.maxY, b.maxY);
+        return a;
+    }
 }
 
 function findItem(item, items, equalsFn) {
@@ -437,13 +448,6 @@ function distBBox(node, k, p, toBBox, destNode) {
     return destNode;
 }
 
-function extend(a, b) {
-    a.minX = Math.min(a.minX, b.minX);
-    a.minY = Math.min(a.minY, b.minY);
-    a.maxX = Math.max(a.maxX, b.maxX);
-    a.maxY = Math.max(a.maxY, b.maxY);
-    return a;
-}
 
 function compareNodeMinX(a, b) { return a.minX - b.minX; }
 function compareNodeMinY(a, b) { return a.minY - b.minY; }
